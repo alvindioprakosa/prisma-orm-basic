@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,45 +9,50 @@ datasource db {
 
 model Profile {
   id      Int     @id @default(autoincrement())
-  email   String  @unique
-  name    String?
-  address String
-  phone   String
-  user    User    @relation(fields: [userId], references: [id])
+  email   String  @unique @db.VarChar(255)
+  name    String? @db.VarChar(100)
+  address String  @db.Text
+  phone   String  @db.VarChar(20)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  Int     @unique
 }
 
 model User {
   id       Int      @id @default(autoincrement())
-  username String
-  password String
+  username String   @unique @db.VarChar(50)
+  password String   @db.VarChar(255)
   Profile  Profile?
   Post     Post[]
+
+  @@index([username]) // Menambah indeks untuk pencarian cepat berdasarkan username
 }
 
 model Post {
   id                Int                 @id @default(autoincrement())
-  title             String
-  content           String?
+  title             String              @db.VarChar(255)
+  content           String?             @db.Text
   published         Boolean             @default(false)
-  author            User                @relation(fields: [authorId], references: [id])
+  author            User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId          Int
   CategoriesOnPosts CategoriesOnPosts[]
+
+  @@index([authorId]) // Menambah indeks untuk mempercepat query berdasarkan authorId
 }
 
 model Category {
   id    Int                 @id @default(autoincrement())
-  name  String
+  name  String              @unique @db.VarChar(100)
   posts CategoriesOnPosts[]
 }
 
 model CategoriesOnPosts {
-  post       Post     @relation(fields: [postId], references: [id])
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     Int
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int
   assignedAt DateTime @default(now())
-  assignedBy String
+  assignedBy String   @db.VarChar(100)
 
   @@id([postId, categoryId])
+  @@index([categoryId]) // Menambah indeks untuk mempercepat query berdasarkan categoryId
 }
